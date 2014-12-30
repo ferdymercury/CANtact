@@ -243,21 +243,14 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
  * @retval Result of the opeartion: USBD_OK if all operations are OK else USBD_FAIL
  */
 
-CanTxMsgTypeDef TxMsg;
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
     /* USER CODE BEGIN 7 */
     uint32_t status;
+    CanTxMsgTypeDef TxMsg;
 
-    // set up CAN frame
-    TxMsg.DLC = 4;
-    TxMsg.IDE = CAN_ID_STD;
-    TxMsg.RTR = CAN_RTR_DATA;
-    TxMsg.StdId = 0x55;
-    TxMsg.Data[0] = 0x01;
-    TxMsg.Data[1] = 0x02;
-    TxMsg.Data[2] = 0x03;
-    TxMsg.Data[3] = 0x04;
+    uint8_t test_str[] = "t71181122334455667788";
+    slcan_parse_str(&TxMsg, test_str, sizeof(test_str));
 
     // send it
     status = can_tx(&TxMsg, 10);
