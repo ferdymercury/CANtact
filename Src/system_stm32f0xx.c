@@ -8,7 +8,7 @@
   *
   * 1. This file provides two functions and one global variable to be called from
   *    user application:
-  *      - SystemInit(): This function is called at startup just after reset and 
+  *      - SystemInit(): This function is called at startup just after reset and
   *                      before branch to main program. This call is made inside
   *                      the "startup_stm32f0xx.s" file.
   *
@@ -98,14 +98,14 @@
 /** @addtogroup STM32F0xx_System_Private_Defines
   * @{
   */
-#if !defined  (HSE_VALUE) 
-  #define HSE_VALUE    ((uint32_t)8000000) /*!< Default value of the External oscillator in Hz.
-                                                This value can be provided and adapted by the user application. */
+#if !defined  (HSE_VALUE)
+  #define HSE_VALUE    ((uint32_t)16000000) /*!< Default value of the External oscillator in Hz.
+						This value can be provided and adapted by the user application. */
 #endif /* HSE_VALUE */
 
 #if !defined  (HSI_VALUE)
   #define HSI_VALUE    ((uint32_t)8000000) /*!< Default value of the Internal oscillator in Hz.
-                                                This value can be provided and adapted by the user application. */
+						This value can be provided and adapted by the user application. */
 #endif /* HSI_VALUE */
 /**
   * @}
@@ -126,9 +126,9 @@
       1) by calling CMSIS function SystemCoreClockUpdate()
       2) by calling HAL API function HAL_RCC_GetHCLKFreq()
       3) each time HAL_RCC_ClockConfig() is called to configure the system clock frequency
-         Note: If you use this function to configure the system clock there is no need to
-               call the 2 first functions listed above, since SystemCoreClock variable is 
-               updated automatically.
+	 Note: If you use this function to configure the system clock there is no need to
+	       call the 2 first functions listed above, since SystemCoreClock variable is
+	       updated automatically.
   */
 uint32_t SystemCoreClock = 8000000;
 
@@ -169,7 +169,7 @@ void SystemInit(void)
   /* Reset SW[1:0], HPRE[3:0], PPRE[2:0], ADCPRE, MCOSEL[2:0], MCOPRE[2:0] and PLLNODIV bits */
   RCC->CFGR &= (uint32_t)0x08FFB80C;
 #endif /* STM32F051x8 or STM32F058x8 */
-  
+
   /* Reset HSEON, CSSON and PLLON bits */
   RCC->CR &= (uint32_t)0xFEF6FFFF;
 
@@ -261,24 +261,24 @@ void SystemCoreClockUpdate (void)
 
       if (pllsource == RCC_CFGR_PLLSRC_HSE_PREDIV)
       {
-        /* HSE used as PLL clock source : SystemCoreClock = HSE/PREDIV * PLLMUL */
-        SystemCoreClock = (HSE_VALUE/predivfactor) * pllmull;
+	/* HSE used as PLL clock source : SystemCoreClock = HSE/PREDIV * PLLMUL */
+	SystemCoreClock = (HSE_VALUE/predivfactor) * pllmull;
       }
 #if defined(STM32F042x6) || defined(STM32F048xx) || defined(STM32F072xB) || defined(STM32F078xx) || defined(STM32F091xC) || defined(STM32F098xx)
       else if (pllsource == RCC_CFGR_PLLSRC_HSI48_PREDIV)
       {
-        /* HSI48 used as PLL clock source : SystemCoreClock = HSI48/PREDIV * PLLMUL */
-        SystemCoreClock = (HSI48_VALUE/predivfactor) * pllmull;
+	/* HSI48 used as PLL clock source : SystemCoreClock = HSI48/PREDIV * PLLMUL */
+	SystemCoreClock = (HSI48_VALUE/predivfactor) * pllmull;
       }
 #endif /* STM32F042x6 || STM32F048xx || STM32F072xB || STM32F078xx || STM32F091xC || STM32F098xx */
       else
       {
 #if defined(STM32F042x6) || defined(STM32F048xx) || defined(STM32F071xB) || defined(STM32F072xB) || defined(STM32F078xx) || defined(STM32F091xC) || defined(STM32F098xx)
-        /* HSI used as PLL clock source : SystemCoreClock = HSI/PREDIV * PLLMUL */
-        SystemCoreClock = (HSI_VALUE/predivfactor) * pllmull;
+	/* HSI used as PLL clock source : SystemCoreClock = HSI/PREDIV * PLLMUL */
+	SystemCoreClock = (HSI_VALUE/predivfactor) * pllmull;
 #else
-        /* HSI used as PLL clock source : SystemCoreClock = HSI/2 * PLLMUL */
-        SystemCoreClock = (HSI_VALUE >> 1) * pllmull;
+	/* HSI used as PLL clock source : SystemCoreClock = HSI/2 * PLLMUL */
+	SystemCoreClock = (HSI_VALUE >> 1) * pllmull;
 #endif /* STM32F042x6 || STM32F048xx || STM32F071xB || STM32F072xB || STM32F078xx || STM32F091xC || STM32F098xx */
       }
       break;
@@ -306,4 +306,3 @@ void SystemCoreClockUpdate (void)
   */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-

@@ -269,8 +269,10 @@ USBD_StatusTypeDef  USBD_LL_Init (USBD_HandleTypeDef *pdev)
   hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
   HAL_PCD_Init(&hpcd_USB_FS);
 
-  HAL_PCDEx_PMAConfig(pdev->pData , 0x00 , PCD_SNG_BUF, 0x18);
-  HAL_PCDEx_PMAConfig(pdev->pData , 0x80 , PCD_SNG_BUF, 0x58);
+    HAL_PCDEx_PMAConfig(pdev->pData , 0x00 , PCD_SNG_BUF, 0x18+0*USB_FS_MAX_PACKET_SIZE);
+    HAL_PCDEx_PMAConfig(pdev->pData , 0x80 , PCD_SNG_BUF, 0x18+1*USB_FS_MAX_PACKET_SIZE);
+    HAL_PCDEx_PMAConfig(pdev->pData , 0x01 , PCD_SNG_BUF, 0x18+2*USB_FS_MAX_PACKET_SIZE);
+    HAL_PCDEx_PMAConfig(pdev->pData , 0x81 , PCD_SNG_BUF, 0x18+3*USB_FS_MAX_PACKET_SIZE);
   return USBD_OK;
 }
 

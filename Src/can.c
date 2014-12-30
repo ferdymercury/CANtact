@@ -18,8 +18,8 @@ void can_init(void) {
     filter.FilterActivation = ENABLE;
 
     hcan.Instance = CAN;
-    hcan.Init.Prescaler = 48;
-    hcan.Init.Mode = CAN_MODE_LOOPBACK;
+    hcan.Init.Prescaler = 12;
+    hcan.Init.Mode = CAN_MODE_NORMAL;
     hcan.Init.SJW = CAN_SJW_1TQ;
     hcan.Init.BS1 = CAN_BS1_4TQ;
     hcan.Init.BS2 = CAN_BS2_3TQ;

@@ -61,8 +61,8 @@
 /* USER CODE BEGIN 1 */
 /* Define size for the receive and transmit buffer over CDC */
 /* It's up to user to redefine and/or remove those define */
-#define APP_RX_DATA_SIZE  50
-#define APP_TX_DATA_SIZE  50
+#define APP_RX_DATA_SIZE  32
+#define APP_TX_DATA_SIZE  32
 /* USER CODE END 1 */
 /**
  * @}
@@ -129,7 +129,6 @@ static int8_t CDC_Init_FS(void)
     hUsbDevice_0 = &hUsbDeviceFS;
     /* USER CODE BEGIN 4 */
     /* Set Application Buffers */
-    USBD_CDC_SetTxBuffer(hUsbDevice_0, UserTxBufferFS, APP_RX_DATA_SIZE);
     USBD_CDC_SetRxBuffer(hUsbDevice_0, UserRxBufferFS);
     return (USBD_OK);
     /* USER CODE END 4 */
@@ -243,11 +242,12 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
  * @param  Len: Number of data received (in bytes)
  * @retval Result of the opeartion: USBD_OK if all operations are OK else USBD_FAIL
  */
+
+CanTxMsgTypeDef TxMsg;
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
     /* USER CODE BEGIN 7 */
     uint32_t status;
-    CanTxMsgTypeDef TxMsg;
 
     // set up CAN frame
     TxMsg.DLC = 4;
@@ -263,7 +263,7 @@ static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
     status = can_tx(&TxMsg, 10);
 
     // prepare for next read
-    USBD_CDC_SetRxBuffer(hUsbDevice_0, UserRxBufferFS);
+    //USBD_CDC_SetRxBuffer(hUsbDevice_0, UserRxBufferFS);
     USBD_CDC_ReceivePacket(hUsbDevice_0);
 
     return (USBD_OK);
@@ -287,20 +287,25 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
     /* USER CODE BEGIN 8 */
     uint16_t i;
 
+    for (i=0; i < sizeof(UserTxBufferFS); i++) {
+	UserTxBufferFS[i] = 0;
+    }
+
     for (i=0; i < Len; i++) {
 	UserTxBufferFS[i] = Buf[i];
     }
 
-    //USBD_CDC_SetTxBuffer(hUsbDevice_0, UserTxBufferFS, Len);
-    //result = USBD_CDC_TransmitPacket(hUsbDevice_0);
+    USBD_CDC_SetTxBuffer(hUsbDevice_0, UserTxBufferFS, Len);
+    result = USBD_CDC_TransmitPacket(hUsbDevice_0);
 
+/*
     for (i = 0; i < 1 + (Len/8); i++) {
 	USBD_CDC_SetTxBuffer(hUsbDevice_0, UserTxBufferFS + (8*i), 8);
 	do {
 	    result = USBD_CDC_TransmitPacket(hUsbDevice_0);
-	} while (result != HAL_OK);
+	} while (result != HAL_BUSY);
     }
-
+*/
     /* USER CODE END 8 */
     return result;
 }

@@ -89,23 +89,22 @@ int main(void)
     uint32_t count;
 
     // start up delay to allow USB to initialize?
-    for(count=0; count<16000000; count++);
+    for(count=0; count<32000000; count++);
 
     // loop forever
     CanRxMsgTypeDef rx_msg;
-    uint8_t str[] = "fuckfuckfuckfuck";
     uint32_t status;
     uint8_t msg_buf[SLCAN_MTU];
     for (;;) {
 	while (!is_can_msg_pending());
-	status = can_rx(&rx_msg, 10);
+	status = can_rx(&rx_msg, 3);
 	if (status == HAL_OK) {
 	    status = slcan_parse_frame(&msg_buf, &rx_msg);
 	    CDC_Transmit_FS(msg_buf, status);
 	}
 
 	#if 0
-	for(count=0; count < 8000000; count++);
+	for(count=0; count < 16000000; count++);
 	CDC_Transmit_FS(str, sizeof(str));
 	#endif
     }
