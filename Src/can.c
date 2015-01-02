@@ -1,10 +1,12 @@
 #include "stm32f0xx_hal.h"
+#include "can.h"
 
 CAN_HandleTypeDef hcan;
+CAN_FilterConfTypeDef filter;
+enum can_bus_state bus_state;
 
 void can_init(void) {
     uint32_t status;
-    CAN_FilterConfTypeDef filter;
 
     filter.FilterIdHigh = 0;
     filter.FilterIdLow = 0;
@@ -30,8 +32,47 @@ void can_init(void) {
     hcan.Init.RFLM = DISABLE;
     hcan.Init.TXFP = DISABLE;
 
+    bus_state = OFF_BUS;
     status = HAL_CAN_Init(&hcan);
-    status = HAL_CAN_ConfigFilter(&hcan, &filter);
+}
+
+void can_enable(void) {
+    uint32_t status;
+    if (bus_state == OFF_BUS) {
+	hcan.Init.Mode = CAN_MODE_NORMAL;
+	status = HAL_CAN_Init(&hcan);
+	status = HAL_CAN_ConfigFilter(&hcan, &filter);
+	bus_state = ON_BUS;
+    }
+}
+
+void can_disable(void) {
+    uint32_t status;
+    if (bus_state == ON_BUS) {
+	__HAL_CAN_RESET_HANDLE_STATE(&hcan);
+	hcan.Init.Mode = CAN_MODE_SILENT;
+	status = HAL_CAN_Init(&hcan);
+	bus_state = OFF_BUS;
+    }
+}
+
+void can_set_bitrate(enum can_bitrate bitrate) {
+    if (bus_state == ON_BUS) {
+	// cannot set bitrate while on bus
+	return;
+    }
+
+    switch (bitrate) {
+    case CAN_BITRATE_500K:
+	hcan.Init.Prescaler = 12;
+	break;
+    case CAN_BITRATE_250K:
+	hcan.Init.Prescaler = 24;
+	break;
+    case CAN_BITRATE_125K:
+	hcan.Init.Prescaler = 48;
+	break;
+    }
 }
 
 uint32_t can_tx(CanTxMsgTypeDef *tx_msg, uint32_t timeout) {
@@ -55,5 +96,8 @@ uint32_t can_rx(CanRxMsgTypeDef *rx_msg, uint32_t timeout) {
 }
 
 uint8_t is_can_msg_pending(uint8_t fifo) {
+    if (bus_state == OFF_BUS) {
+	return 0;
+    }
     return (__HAL_CAN_MSG_PENDING(&hcan, fifo) > 0);
 }

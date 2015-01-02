@@ -36,6 +36,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_cdc_if.h"
 #include "can.h"
+#include "slcan.h"
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
  * @{
@@ -243,17 +244,33 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
  * @retval Result of the opeartion: USBD_OK if all operations are OK else USBD_FAIL
  */
 
+uint8_t slcan_str[SLCAN_MTU];
+uint8_t slcan_str_index = 0;
+
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
     /* USER CODE BEGIN 7 */
     uint32_t status;
     CanTxMsgTypeDef TxMsg;
 
-    uint8_t test_str[] = "t71181122334455667788";
-    slcan_parse_str(&TxMsg, test_str, sizeof(test_str));
+    /*uint8_t test_str[] = "t71181122334455667788";
+      slcan_parse_str(&TxMsg, test_str, sizeof(test_str));*/
+
+    uint8_t n = *Len;
+    uint8_t i;
+    for (i = 0; i < n; i++) {
+	if (Buf[i] == '\n') {
+	    status = slcan_parse_str(&TxMsg, slcan_str, slcan_str_index);
+	    slcan_str_index = 0;
+	} else {
+	    slcan_str[slcan_str_index++] = Buf[i];
+	}
+    }
 
     // send it
-    status = can_tx(&TxMsg, 10);
+    if (status == 0) {
+	status = can_tx(&TxMsg, 10);
+    }
 
     // prepare for next read
     //USBD_CDC_SetRxBuffer(hUsbDevice_0, UserRxBufferFS);

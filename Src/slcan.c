@@ -1,7 +1,8 @@
 #include "stm32f0xx_hal.h"
+#include "can.h"
 #include "slcan.h"
 
-uint8_t slcan_parse_frame(char *buf, CanRxMsgTypeDef *frame) {
+int8_t slcan_parse_frame(char *buf, CanRxMsgTypeDef *frame) {
     uint8_t i = 0;
     uint8_t id_len, j;
     uint32_t tmp;
@@ -64,7 +65,7 @@ uint8_t slcan_parse_frame(char *buf, CanRxMsgTypeDef *frame) {
     return i;
 }
 
-void slcan_parse_str(CanTxMsgTypeDef *frame, char *buf, uint8_t len) {
+int8_t slcan_parse_str(CanTxMsgTypeDef *frame, char *buf, uint8_t len) {
 
     // convert from ASCII (2nd character to end)
     uint8_t i;
@@ -76,12 +77,27 @@ void slcan_parse_str(CanTxMsgTypeDef *frame, char *buf, uint8_t len) {
 	}
     }
 
-    if (buf[0] == 't' || buf[0] == 'T') {
+    if (buf[0] == 'O') {
+	// open channel command
+	can_enable();
+	return;
+    } else if (buf[0] == 'C') {
+	// close channel command
+	can_disable();
+	return;
+    } else if (buf[0] == 'S') {
+	// set bitrate command
+	can_set_bitrate(CAN_BITRATE_125K);
+	return;
+    } else if (buf[0] == 't' || buf[0] == 'T') {
+	// transmit data frame command
 	frame->RTR = CAN_RTR_DATA;
     } else if (buf[0] == 'r' || buf[0] == 'R') {
 	frame->RTR = CAN_RTR_REMOTE;
+	// transmit remote frame command
     } else {
-	return;
+	// error
+	return -1;
     }
 
     if (buf[0] == 't' || buf[0] == 'r') {
@@ -90,7 +106,7 @@ void slcan_parse_str(CanTxMsgTypeDef *frame, char *buf, uint8_t len) {
 	frame->IDE = CAN_ID_EXT;
     } else {
 	// error
-	return;
+	return -1;
     }
 
     uint8_t id_len = frame->IDE == CAN_ID_EXT ? SLCAN_EXT_ID_LEN : SLCAN_STD_ID_LEN;
@@ -103,10 +119,15 @@ void slcan_parse_str(CanTxMsgTypeDef *frame, char *buf, uint8_t len) {
     frame->StdId /= 16;
 
     frame->DLC = buf[i++];
+    if (frame->DLC < 0 || frame->DLC > 8) {
+	return -1;
+    }
 
     uint8_t j;
     for (j = 0; j < frame->DLC; j++) {
 	frame->Data[j] = (buf[i] << 4) + buf[i+1];
 	i += 2;
     }
+
+    return 0;
 }
