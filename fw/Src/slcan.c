@@ -56,20 +56,19 @@ int8_t slcan_parse_frame(char *buf, CanRxMsgTypeDef *frame) {
 	}
     }
 
-    // add newline, null terminate
+    // add carrage return (slcan EOL)
     buf[i++] = '\r';
-    buf[i++] = '\n';
-    buf[i++] = '\0';
 
     // return number of bytes in string
     return i;
 }
 
-int8_t slcan_parse_str(CanTxMsgTypeDef *frame, char *buf, uint8_t len) {
+int8_t slcan_parse_str(char *buf, uint8_t len) {
+    CanTxMsgTypeDef frame;
+    uint8_t i;
 
     // convert from ASCII (2nd character to end)
-    uint8_t i;
-    for (i = 1; i < len-1; i++) {
+    for (i = 1; i < len; i++) {
 	if (buf[i] < 'A') {
 	    buf[i] -= 0x30;
 	} else {
@@ -80,54 +79,70 @@ int8_t slcan_parse_str(CanTxMsgTypeDef *frame, char *buf, uint8_t len) {
     if (buf[0] == 'O') {
 	// open channel command
 	can_enable();
-	return;
+	return 0;
     } else if (buf[0] == 'C') {
 	// close channel command
 	can_disable();
-	return;
+	return 0;
     } else if (buf[0] == 'S') {
 	// set bitrate command
-	can_set_bitrate(CAN_BITRATE_125K);
-	return;
+	switch(buf[1]) {
+	case 0:
+	    can_set_bitrate(CAN_BITRATE_125K);
+	    break;
+	case 1:
+	    can_set_bitrate(CAN_BITRATE_250K);
+	    break;
+	case 2:
+	    can_set_bitrate(CAN_BITRATE_500K);
+	    break;
+	default:
+	    // invalid setting
+	    return -1;
+	}
+	return 0;
     } else if (buf[0] == 't' || buf[0] == 'T') {
 	// transmit data frame command
-	frame->RTR = CAN_RTR_DATA;
+	frame.RTR = CAN_RTR_DATA;
     } else if (buf[0] == 'r' || buf[0] == 'R') {
-	frame->RTR = CAN_RTR_REMOTE;
+	frame.RTR = CAN_RTR_REMOTE;
 	// transmit remote frame command
     } else {
-	// error
+	// error, unknown command
 	return -1;
     }
 
     if (buf[0] == 't' || buf[0] == 'r') {
-	frame->IDE = CAN_ID_STD;
+	frame.IDE = CAN_ID_STD;
     } else if (buf[0] == 'T' || buf[0] == 'R') {
-	frame->IDE = CAN_ID_EXT;
+	frame.IDE = CAN_ID_EXT;
     } else {
 	// error
 	return -1;
     }
 
-    uint8_t id_len = frame->IDE == CAN_ID_EXT ? SLCAN_EXT_ID_LEN : SLCAN_STD_ID_LEN;
-    frame->StdId = 0;
+    uint8_t id_len = frame.IDE == CAN_ID_EXT ? SLCAN_EXT_ID_LEN : SLCAN_STD_ID_LEN;
+    frame.StdId = 0;
     i = 1;
     while (i <= id_len) {
-	frame->StdId += buf[i++];
-	frame->StdId *= 16;
+	frame.StdId += buf[i++];
+	frame.StdId *= 16;
     }
-    frame->StdId /= 16;
+    frame.StdId /= 16;
 
-    frame->DLC = buf[i++];
-    if (frame->DLC < 0 || frame->DLC > 8) {
+    frame.DLC = buf[i++];
+    if (frame.DLC < 0 || frame.DLC > 8) {
 	return -1;
     }
 
     uint8_t j;
-    for (j = 0; j < frame->DLC; j++) {
-	frame->Data[j] = (buf[i] << 4) + buf[i+1];
+    for (j = 0; j < frame.DLC; j++) {
+	frame.Data[j] = (buf[i] << 4) + buf[i+1];
 	i += 2;
     }
+
+    // send the message
+    can_tx(&frame, 10);
 
     return 0;
 }

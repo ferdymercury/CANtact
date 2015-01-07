@@ -33,13 +33,14 @@ void can_init(void) {
     hcan.Init.TXFP = DISABLE;
 
     bus_state = OFF_BUS;
-    status = HAL_CAN_Init(&hcan);
+    //status = HAL_CAN_Init(&hcan);
 }
 
 void can_enable(void) {
     uint32_t status;
     if (bus_state == OFF_BUS) {
 	hcan.Init.Mode = CAN_MODE_NORMAL;
+	hcan.pTxMsg = NULL;
 	status = HAL_CAN_Init(&hcan);
 	status = HAL_CAN_ConfigFilter(&hcan, &filter);
 	bus_state = ON_BUS;
@@ -49,9 +50,8 @@ void can_enable(void) {
 void can_disable(void) {
     uint32_t status;
     if (bus_state == ON_BUS) {
-	__HAL_CAN_RESET_HANDLE_STATE(&hcan);
-	hcan.Init.Mode = CAN_MODE_SILENT;
-	status = HAL_CAN_Init(&hcan);
+	// do a bxCAN reset (set RESET bit to 1)
+	hcan.Instance->MCR |= CAN_MCR_RESET;
 	bus_state = OFF_BUS;
     }
 }
