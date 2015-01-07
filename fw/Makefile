@@ -19,7 +19,7 @@ TARGET = main
 BUILD_DIR = build
 
 # LD_SCRIPT: location of the linker script
-LD_SCRIPT = Projects/TrueSTUDIO/cantact\ Configuration/STM32F042C6_FLASH.ld
+LD_SCRIPT = STM32F042C6_FLASH.ld
 
 # USER_DEFS user defined macros
 USER_DEFS = -D HSI48_VALUE=48000000 -D HSE_VALUE=16000000
