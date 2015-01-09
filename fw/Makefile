@@ -94,7 +94,7 @@ all: $(BUILD_DIR)/$(TARGET).hex
 CUBELIB = $(CUBELIB_BUILD_DIR)/libstm32cube.a
 
 # List of stm32 driver objects
-CUBELIB_DRIVER_OBJS = $(addprefix $(CUBELIB_BUILD_DIR)/, $(patsubst %.c, %.o, $(notdir $(wildcard $(DRIVER_PATH)/src/*.c))))
+CUBELIB_DRIVER_OBJS = $(addprefix $(CUBELIB_BUILD_DIR)/, $(patsubst %.c, %.o, $(notdir $(wildcard $(DRIVER_PATH)/Src/*.c))))
 
 # shortcut for building core library (make cubelib)
 cubelib: $(CUBELIB)
@@ -103,7 +103,7 @@ $(CUBELIB): $(CUBELIB_DRIVER_OBJS)
 	$(AR) rv $@ $(CUBELIB_DRIVER_OBJS)
 	$(RANLIB) $@
 
-$(CUBELIB_BUILD_DIR)/%.o: $(DRIVER_PATH)/src/%.c | $(CUBELIB_BUILD_DIR)
+$(CUBELIB_BUILD_DIR)/%.o: $(DRIVER_PATH)/Src/%.c | $(CUBELIB_BUILD_DIR)
 	$(CC) -c $(CFLAGS) -o $@ $^
 
 $(CUBELIB_BUILD_DIR):
@@ -153,10 +153,10 @@ $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) $(USB_OBJECTS) $(CUBELIB)
 		-T $(LD_SCRIPT)
 	$(SIZE) $@
 
-$(BUILD_DIR)/%.o: src/%.c | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: Src/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -Os -c -o $@ $^
 
-$(BUILD_DIR)/%.o: src/%.s | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: Src/%.s | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c -o $@ $^
 
 $(BUILD_DIR):
