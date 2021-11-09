@@ -30,4 +30,4 @@ With OpenOCD running, arm-none-eabi-gdb can be used to load code and debug.
 ## Hardware
 
 The hardware design files are in the `hw/` folder. These files are editable with 
-[KiCad](http://www.kicad-pcb.org/).
+[KiCad](http://www.kicad.org/).
